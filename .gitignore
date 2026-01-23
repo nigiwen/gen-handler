@@ -1,0 +1,14 @@
+# 编译产物
+gen-handler
+gen-handler.exe
+*.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.log
