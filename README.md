@@ -13,56 +13,76 @@
 
 ## 安装方式
 
-### 方式一：作为项目工具使用（当前方式）
+这是一个独立的 Go 工具，需要先安装才能使用。
+
+### 从 GitHub 安装（推荐）
 
 ```bash
-# 在项目根目录运行
-go run ./tools/gen-handler
-
-# 或使用 Makefile
-make gen-handler
-```
-
-### 方式二：安装为全局工具（推荐）
-
-```bash
-# 从当前项目安装
-go install ./tools/gen-handler
-
-# 或从 GitHub 安装（发布后）
+# 安装最新版本
 go install github.com/nigiwen/gen-handler@latest
 
-# 使用
-gen-handler
+# 或安装特定版本
+go install github.com/nigiwen/gen-handler@v1.0.0
 ```
 
-**注意**：如果从 GitHub 安装，需要先发布到 GitHub，详见 `PUBLISH.md`
+### 从源码安装
+
+```bash
+# 克隆仓库
+git clone https://github.com/nigiwen/gen-handler.git
+cd gen-handler
+
+# 安装
+go install
+```
+
+### 验证安装
+
+```bash
+# 检查是否安装成功
+which gen-handler
+gen-handler -help
+```
+
+安装后，工具会被安装到 `$GOPATH/bin` 或 `$GOBIN` 目录，确保该目录在 `$PATH` 环境变量中。
 
 ## 使用方法
 
-### 基本使用（使用默认配置）
+### 基本使用（推荐 ⭐）
+
+工具支持**自动配置**，会自动从项目的 `go.mod` 读取 module 路径，并自动生成 `proto-dir`。
 
 ```bash
-gen-handler
+# 在项目根目录运行（会自动读取 go.mod 并生成相关路径）
+gen-handler \
+  -output-dir ./api/grpc \
+  -core-dir ./core
 ```
 
-默认配置：
-- `proto-dir`: `./internal/proto/axis/devopsx`
-- `output-dir`: `./api/grpc`
-- `core-dir`: `./core`
-- `wire-dir`: `./cmd/devopsx`
-- `module`: `bsi/axis/devopsx`
+**自动配置规则**：
+- `module`: 自动从 `go.mod` 读取（如：`bsi/axis/devopsx`）
+- `proto-dir`: 自动从 module 生成（规则：`./internal/proto` + module去掉第一个`/`前面的部分）
+  - 例如：`bsi/axis/devopsx` → `./internal/proto/axis/devopsx`
+- `wire-dir`: 自动从 module 生成（规则：`./cmd` + module最后一个`/`后面的部分）
+  - 例如：`bsi/axis/devopsx` → `./cmd/devopsx`
 
 ### 自定义配置
 
+如果需要覆盖自动配置，可以手动指定参数：
+
 ```bash
 gen-handler \
-  -proto-dir ./internal/proto/axis/devopsx \
+  -proto-dir ./internal/proto/your-project \
   -output-dir ./api/grpc \
   -core-dir ./core \
-  -wire-dir ./cmd/devopsx \
-  -module bsi/axis/devopsx
+  -wire-dir ./cmd/your-service \
+  -module your-module/path
 ```
+
+**注意**：
+- 如果不指定 `-module`，工具会自动从 `go.mod` 读取
+- 如果不指定 `-proto-dir`，工具会根据 module 自动生成
+- 如果找不到 `go.mod` 且未指定 `-module`，工具会报错并提示
 
 ### 查看帮助
 
@@ -72,14 +92,25 @@ gen-handler -help
 
 ## 命令行参数
 
-| 参数 | 说明 | 默认值 |
+| 参数 | 说明 | 默认值/自动生成 |
 |------|------|--------|
-| `-proto-dir` | proto 生成的 grpc 文件目录 | `./internal/proto/axis/devopsx` |
+| `-proto-dir` | proto 生成的 grpc 文件目录 | 未指定时自动从 module 生成：`./internal/proto/{module去掉第一个/前面的部分}` |
 | `-output-dir` | handler 输出目录 | `./api/grpc` |
 | `-core-dir` | core service 输出目录 | `./core` |
-| `-wire-dir` | wire 命令执行目录 | `./cmd/devopsx` |
-| `-module` | Go 模块路径（用于生成 import 路径） | `bsi/axis/devopsx` |
+| `-wire-dir` | wire 命令执行目录 | 未指定时自动从 module 生成：`./cmd/{module最后一个/后面的部分}` |
+| `-module` | Go 模块路径（用于生成 import 路径） | 未指定时自动从 `go.mod` 读取 |
 | `-help` | 显示帮助信息 | - |
+
+**自动生成规则示例**：
+- Module: `bsi/axis/devopsx`
+  - Proto-dir: `./internal/proto/axis/devopsx`
+  - Wire-dir: `./cmd/devopsx`
+- Module: `github.com/user/project`
+  - Proto-dir: `./internal/proto/user/project`
+  - Wire-dir: `./cmd/project`
+- Module: `example.com/service`
+  - Proto-dir: `./internal/proto/service`
+  - Wire-dir: `./cmd/service`
 
 ## 工作流程
 
@@ -169,17 +200,21 @@ func (t *TestCaseService) CreateTestCase(ctx context.Context, in *devopsx.Create
 
 ## 注意事项
 
-1. **路径配置**：确保所有路径参数都是相对于项目根目录的
-2. **模块路径**：`-module` 参数应该与项目的 `go.mod` 中的模块路径一致
-3. **Wire 命令**：确保系统已安装 `wire` 工具，且 `wire-dir` 目录存在
-4. **文件覆盖**：如果文件已存在，工具会跳过生成（除非使用强制模式）
+1. **独立工具**：这是一个独立的工具，需要先安装才能使用（见安装方式）
+2. **路径配置**：所有路径参数都是相对于**运行命令时的当前工作目录**（通常是项目根目录）
+3. **模块路径**：`-module` 参数必须与你的项目 `go.mod` 中的模块路径完全一致，否则生成的 import 路径会错误
+4. **Wire 命令**：确保系统已安装 `wire` 工具（`go install github.com/google/wire/cmd/wire@latest`），且 `wire-dir` 目录存在
+5. **文件覆盖**：如果文件已存在，工具会跳过生成（保护已有代码）
+6. **项目结构**：工具假设你的项目遵循标准的 Go 项目结构，proto 文件已编译生成 `*_grpc.pb.go` 文件
 
 ## 开发说明
+
+这是一个独立的 Go 工具项目，可以用于任何使用 gRPC 和 Wire 的 Go 项目。
 
 ### 项目结构
 
 ```
-tools/gen-handler/
+gen-handler/
 ├── main.go              # 主入口，命令行参数解析
 ├── types.go              # 类型定义（ServiceInfo, Method, Config）
 ├── parser.go             # 解析 grpc 文件
@@ -189,16 +224,41 @@ tools/gen-handler/
 ├── core_generator.go     # 生成 core service 代码
 ├── updater.go            # 更新 grpc.go
 ├── core_updater.go       # 更新 core.go
-└── utils.go              # 工具函数
+├── utils.go              # 工具函数
+├── go.mod                # Go 模块定义
+└── README.md             # 本文档
+```
+
+### 本地开发
+
+```bash
+# 克隆仓库
+git clone https://github.com/nigiwen/gen-handler.git
+cd gen-handler
+
+# 安装依赖
+go mod tidy
+
+# 本地测试（在目标项目中）
+go run . -proto-dir ./internal/proto/your-project ...
+
+# 或编译后测试
+go build -o gen-handler
+./gen-handler -help
 ```
 
 ### 扩展开发
 
-如果需要支持其他项目结构，可以：
-1. 修改默认配置值
+如果需要支持其他项目结构或功能，可以：
+1. 修改默认配置值（在 `main.go` 中）
 2. 添加配置文件支持（如 YAML/JSON）
 3. 支持模板自定义
+4. 添加更多代码生成选项
+
+### 贡献
+
+欢迎提交 Issue 和 Pull Request！
 
 ## 许可证
 
-与主项目保持一致。
+本项目采用与原始项目相同的许可证。详见 LICENSE 文件（如有）。

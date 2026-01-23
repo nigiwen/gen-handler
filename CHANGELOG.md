@@ -1,0 +1,48 @@
+# Changelog
+
+所有重要的变更都会记录在这个文件中。
+
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+## [1.1.0] - 2026-01-23
+
+### 新增功能
+
+- ✨ **自动读取 go.mod**：工具现在会自动从项目根目录的 `go.mod` 文件中读取 module 路径，无需手动指定 `-module` 参数
+- ✨ **自动生成 proto-dir**：根据 module 路径自动生成 `proto-dir`，规则为 `./internal/proto` + (module 去掉第一个 `/` 前面的部分)
+- ✨ **自动生成 wire-dir**：根据 module 路径自动生成 `wire-dir`，规则为 `./cmd` + (module 最后一个 `/` 后面的部分)
+- 📝 添加了 `TEST.md` 测试指南文档
+
+### 改进
+
+- 🔧 优化了命令行参数，`-module`、`-proto-dir` 和 `-wire-dir` 现在都支持自动生成
+- 📚 更新了 README 文档，详细说明了自动配置功能和使用示例
+
+### 使用示例
+
+现在使用工具更加简单，只需要指定必要的参数：
+
+```bash
+# 在项目根目录运行（自动读取 go.mod 并生成相关路径）
+gen-handler \
+  -output-dir ./api/grpc \
+  -core-dir ./core
+```
+
+工具会自动：
+- 从 `go.mod` 读取 module（如：`bsi/axis/devopsx`）
+- 生成 `proto-dir`（如：`./internal/proto/axis/devopsx`）
+- 生成 `wire-dir`（如：`./cmd/devopsx`）
+
+## [1.0.0] - 2026-01-23
+
+### 初始版本
+
+- 🎉 首次发布
+- ✨ 支持自动扫描和解析 `*_grpc.pb.go` 文件
+- ✨ 支持自动生成 gRPC Handler 文件
+- ✨ 支持自动生成 Core Service 文件
+- ✨ 支持自动更新 `grpc.go` 和 `core.go` 的 ProviderSet
+- ✨ 支持自动运行 `wire` 命令生成依赖注入代码
+- ✨ 支持交互式选择要生成的服务

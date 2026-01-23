@@ -10,11 +10,11 @@ import (
 func main() {
 	// 定义命令行参数
 	var (
-		protoDir  = flag.String("proto-dir", "./internal/proto/axis/devopsx", "proto 生成的 grpc 文件目录")
+		protoDir  = flag.String("proto-dir", "", "proto 生成的 grpc 文件目录（未指定时自动从 module 生成）")
 		outputDir = flag.String("output-dir", "./api/grpc", "handler 输出目录")
 		coreDir   = flag.String("core-dir", "./core", "core service 输出目录")
-		wireDir   = flag.String("wire-dir", "./cmd/devopsx", "wire 命令执行目录")
-		modulePath = flag.String("module", "bsi/axis/devopsx", "Go 模块路径（用于生成 import 路径）")
+		wireDir   = flag.String("wire-dir", "", "wire 命令执行目录（未指定时自动从 module 生成）")
+		modulePath = flag.String("module", "", "Go 模块路径（用于生成 import 路径，未指定时自动从 go.mod 读取）")
 		showHelp  = flag.Bool("help", false, "显示帮助信息")
 	)
 
@@ -35,13 +35,47 @@ func main() {
 		os.Exit(0)
 	}
 
+	// 如果未指定 module 参数，尝试从 go.mod 自动读取
+	finalModulePath := *modulePath
+	if finalModulePath == "" {
+		// 获取当前工作目录
+		workDir, err := os.Getwd()
+		if err != nil {
+			workDir = "."
+		}
+		
+		// 尝试从 go.mod 读取
+		if module, found := readModuleFromGoMod(workDir); found {
+			finalModulePath = module
+			fmt.Printf("📦 从 go.mod 自动读取 module: %s\n", finalModulePath)
+		} else {
+			fmt.Printf("❌ 未找到 go.mod 文件，且未指定 -module 参数\n")
+			fmt.Printf("💡 请使用 -module 参数指定 Go 模块路径，或在项目根目录运行此工具\n")
+			os.Exit(1)
+		}
+	}
+
+	// 如果未指定 proto-dir 参数，从 module 自动生成
+	finalProtoDir := *protoDir
+	if finalProtoDir == "" {
+		finalProtoDir = generateProtoDirFromModule(finalModulePath)
+		fmt.Printf("📁 从 module 自动生成 proto-dir: %s\n", finalProtoDir)
+	}
+
+	// 如果未指定 wire-dir 参数，从 module 自动生成
+	finalWireDir := *wireDir
+	if finalWireDir == "" {
+		finalWireDir = generateWireDirFromModule(finalModulePath)
+		fmt.Printf("🔧 从 module 自动生成 wire-dir: %s\n", finalWireDir)
+	}
+
 	// 创建配置
 	config := Config{
-		ProtoDir:   *protoDir,
+		ProtoDir:   finalProtoDir,
 		OutputDir:  *outputDir,
 		CoreDir:    *coreDir,
-		WireDir:    *wireDir,
-		ModulePath: *modulePath,
+		WireDir:    finalWireDir,
+		ModulePath: finalModulePath,
 	}
 
 	// 查找所有 *_grpc.pb.go 文件
