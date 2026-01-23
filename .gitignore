@@ -3,6 +3,11 @@ gen-handler*
 gen-handler.exe
 *.exe
 
+# 打包目录
+dist/
+*.tar.gz
+*.zip
+
 # IDE
 .idea/
 .vscode/
