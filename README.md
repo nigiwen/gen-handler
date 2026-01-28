@@ -215,18 +215,21 @@ func (t *TestCaseService) CreateTestCase(ctx context.Context, in *devopsx.Create
 
 ```
 gen-handler/
-├── main.go              # 主入口，命令行参数解析
-├── types.go              # 类型定义（ServiceInfo, Method, Config）
-├── parser.go             # 解析 grpc 文件
-├── finder.go             # 查找缺失的 handler
-├── selector.go           # 交互式选择服务
-├── generator.go          # 生成 handler 代码
-├── core_generator.go     # 生成 core service 代码
-├── updater.go            # 更新 grpc.go
-├── core_updater.go       # 更新 core.go
-├── utils.go              # 工具函数
-├── go.mod                # Go 模块定义
-└── README.md             # 本文档
+├── main.go                    # 主入口，命令行参数解析和路由
+├── cmd/                       # 命令层
+│   ├── handler.go            # handler 生成命令
+│   └── data.go               # data 同步命令
+├── internal/                  # 内部实现
+│   ├── types/                # 类型定义（ServiceInfo, Method, Config）
+│   ├── util/                 # 工具函数（命名转换、文件操作、AST、模块路径）
+│   ├── parser/               # gRPC 文件解析
+│   ├── scanner/              # 文件扫描（handler、entity）
+│   ├── selector/             # 交互式选择服务
+│   ├── generator/            # 代码生成（handler、core、data、模板）
+│   └── updater/              # 代码更新（grpc、provider）
+├── docs/                      # 文档（CHANGELOG、RELEASE 等）
+├── go.mod                     # Go 模块定义
+└── README.md                  # 本文档
 ```
 
 ### 本地开发

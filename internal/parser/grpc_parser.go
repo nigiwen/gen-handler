@@ -1,21 +1,24 @@
-package main
+package parser
 
 import (
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"strings"
+	
+	"github.com/nigiwen/gen-handler/internal/types"
+	"github.com/nigiwen/gen-handler/internal/util"
 )
 
-// parseGrpcFile 解析 grpc 文件，提取服务接口信息
-func parseGrpcFile(filePath string) ([]ServiceInfo, error) {
+// ParseGrpcFile 解析 grpc 文件，提取服务接口信息
+func ParseGrpcFile(filePath string) ([]types.ServiceInfo, error) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
 
-	var services []ServiceInfo
+	var services []types.ServiceInfo
 
 	// 遍历 AST，查找 Server 接口
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -49,23 +52,23 @@ func parseGrpcFile(filePath string) ([]ServiceInfo, error) {
 }
 
 // extractServiceInfo 从接口定义中提取服务信息
-func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.FileSet, node *ast.File) *ServiceInfo {
+func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.FileSet, node *ast.File) *types.ServiceInfo {
 	// 去掉 Server 后缀，得到基础名称
 	baseName := strings.TrimSuffix(serverName, "Server")
 
 	// 转换为文件名（驼峰转下划线，全小写）
-	fileName := camelToSnake(baseName) + ".go"
+	fileName := util.CamelToSnake(baseName) + ".go"
 
 	// Handler 名称
 	handlerName := baseName + "Handler"
 
 	// 字段名称（首字母小写的驼峰）
-	fieldName := toLowerCamel(baseName) + "Srv"
+	fieldName := util.ToLowerCamel(baseName) + "Srv"
 
 	// Service 名称
 	serviceName := baseName + "Service"
 
-	var methods []Method
+	var methods []types.Method
 
 	// 提取方法
 	for _, method := range it.Methods.List {
@@ -127,7 +130,7 @@ func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.Fi
 			responsePkg = "devopsx"
 		}
 
-		methods = append(methods, Method{
+		methods = append(methods, types.Method{
 			Name:         methodName,
 			Comment:      comment,
 			RequestType:  requestType,
@@ -141,7 +144,7 @@ func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.Fi
 		return nil
 	}
 
-	return &ServiceInfo{
+	return &types.ServiceInfo{
 		ServerName:  serverName,
 		HandlerName: handlerName,
 		FileName:    fileName,

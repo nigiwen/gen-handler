@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"bufio"
@@ -8,46 +8,9 @@ import (
 	"strings"
 )
 
-// camelToSnake 将驼峰命名转换为下划线命名（全小写）
-func camelToSnake(s string) string {
-	var result strings.Builder
-	for i, r := range s {
-		if i > 0 && r >= 'A' && r <= 'Z' {
-			result.WriteByte('_')
-		}
-		result.WriteRune(r)
-	}
-	return strings.ToLower(result.String())
-}
-
-// toLowerCamel 将首字母转为小写
-func toLowerCamel(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strings.ToLower(s[:1]) + s[1:]
-}
-
-// fileExists 检查文件是否存在
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
-}
-
-// toUpperCamel 将下划线命名转换为大驼峰命名
-func toUpperCamel(s string) string {
-	parts := strings.Split(s, "_")
-	for i, part := range parts {
-		if len(part) > 0 {
-			parts[i] = strings.ToUpper(part[:1]) + part[1:]
-		}
-	}
-	return strings.Join(parts, "")
-}
-
-// readModuleFromGoMod 从当前目录向上查找 go.mod 文件并读取 module 路径
+// ReadModuleFromGoMod 从当前目录向上查找 go.mod 文件并读取 module 路径
 // 返回 module 路径和是否找到文件
-func readModuleFromGoMod(startDir string) (string, bool) {
+func ReadModuleFromGoMod(startDir string) (string, bool) {
 	// 从当前目录开始，向上查找 go.mod 文件
 	dir := startDir
 	for {
@@ -56,7 +19,7 @@ func readModuleFromGoMod(startDir string) (string, bool) {
 		// 检查文件是否存在
 		if _, err := os.Stat(goModPath); err == nil {
 			// 文件存在，尝试读取
-			module, err := parseGoModFile(goModPath)
+			module, err := ParseGoModFile(goModPath)
 			if err == nil {
 				return module, true
 			}
@@ -74,8 +37,8 @@ func readModuleFromGoMod(startDir string) (string, bool) {
 	return "", false
 }
 
-// parseGoModFile 解析 go.mod 文件，提取 module 路径
-func parseGoModFile(filePath string) (string, error) {
+// ParseGoModFile 解析 go.mod 文件，提取 module 路径
+func ParseGoModFile(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -104,10 +67,10 @@ func parseGoModFile(filePath string) (string, error) {
 	return "", fmt.Errorf("未找到 module 声明")
 }
 
-// generateProtoDirFromModule 从 module 路径生成 proto-dir
+// GenerateProtoDirFromModule 从 module 路径生成 proto-dir
 // 规则：./internal/proto + (module 去掉第一个 / 前面的部分)
 // 例如：bsi/axis/devopsx -> ./internal/proto/axis/devopsx
-func generateProtoDirFromModule(modulePath string) string {
+func GenerateProtoDirFromModule(modulePath string) string {
 	// 查找第一个 / 的位置
 	idx := strings.Index(modulePath, "/")
 	if idx < 0 {
@@ -122,10 +85,10 @@ func generateProtoDirFromModule(modulePath string) string {
 	return filepath.Join("./internal/proto", suffix)
 }
 
-// generateWireDirFromModule 从 module 路径生成 wire-dir
+// GenerateWireDirFromModule 从 module 路径生成 wire-dir
 // 规则：./cmd + (module 最后一个 / 后面的部分)
 // 例如：bsi/axis/devopsx -> ./cmd/devopsx
-func generateWireDirFromModule(modulePath string) string {
+func GenerateWireDirFromModule(modulePath string) string {
 	// 查找最后一个 / 的位置
 	idx := strings.LastIndex(modulePath, "/")
 	if idx < 0 {

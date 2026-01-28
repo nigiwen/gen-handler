@@ -1,17 +1,20 @@
-package main
+package scanner
 
 import (
 	"os"
 	"path/filepath"
 	"strings"
+	
+	"github.com/nigiwen/gen-handler/internal/types"
+	"github.com/nigiwen/gen-handler/internal/util"
 )
 
-// findMissingHandlers 找出还没有生成 handler 文件的服务
-func findMissingHandlers(services []ServiceInfo, outputDir string) []ServiceInfo {
-	var missing []ServiceInfo
+// FindMissingHandlers 找出还没有生成 handler 文件的服务
+func FindMissingHandlers(services []types.ServiceInfo, outputDir string) []types.ServiceInfo {
+	var missing []types.ServiceInfo
 
 	for _, service := range services {
-		if !handlerExists(service, outputDir) {
+		if !HandlerExists(service, outputDir) {
 			missing = append(missing, service)
 		}
 	}
@@ -19,11 +22,11 @@ func findMissingHandlers(services []ServiceInfo, outputDir string) []ServiceInfo
 	return missing
 }
 
-// handlerExists 检查 handler 文件是否已存在
-func handlerExists(service ServiceInfo, outputDir string) bool {
+// HandlerExists 检查 handler 文件是否已存在
+func HandlerExists(service types.ServiceInfo, outputDir string) bool {
 	// 检查文件是否已存在
 	filePath := filepath.Join(outputDir, service.FileName)
-	if _, err := os.Stat(filePath); err == nil {
+	if util.FileExists(filePath) {
 		return true
 	}
 
@@ -36,7 +39,7 @@ func handlerExists(service ServiceInfo, outputDir string) bool {
 
 	for _, variant := range variants {
 		variantPath := filepath.Join(outputDir, variant)
-		if _, err := os.Stat(variantPath); err == nil {
+		if util.FileExists(variantPath) {
 			return true
 		}
 	}

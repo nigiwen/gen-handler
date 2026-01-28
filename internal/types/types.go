@@ -1,4 +1,6 @@
-package main
+package types
+
+import "fmt"
 
 // Config 工具配置
 type Config struct {
@@ -30,4 +32,30 @@ type Method struct {
 	RequestPkg   string // 请求类型包名（devopsx 或 basic）
 	ResponseType string // 响应类型（完整类型名）
 	ResponsePkg  string // 响应类型包名（devopsx, basic 或 zebra）
+}
+
+// EntityInfo 实体信息
+type EntityInfo struct {
+	EntityName string // 如 "Project"
+	FileName   string // 如 "project"
+}
+
+// GetDisplayName 实现 Selectable 接口
+func (s ServiceInfo) GetDisplayName() string {
+	return s.FileName
+}
+
+// GetDescription 实现 Selectable 接口
+func (s ServiceInfo) GetDescription() string {
+	return fmt.Sprintf("Handler: %s, %d 个方法", s.HandlerName, len(s.Methods))
+}
+
+// GetDisplayName 实现 Selectable 接口
+func (e EntityInfo) GetDisplayName() string {
+	return e.FileName + ".go"
+}
+
+// GetDescription 实现 Selectable 接口
+func (e EntityInfo) GetDescription() string {
+	return "Entity: " + e.EntityName
 }

@@ -5,6 +5,26 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.3.0] - 2026-01-28
+
+### 重构
+
+- 🏗️ **项目结构模块化**：将扁平结构重构为模块化的 `internal/` 目录结构，提高代码可维护性
+  - `internal/types/` - 类型定义
+  - `internal/util/` - 工具函数（命名转换、文件操作、AST 操作、模块路径）
+  - `internal/parser/` - gRPC 文件解析
+  - `internal/scanner/` - 文件扫描（handler、entity）
+  - `internal/selector/` - 交互式选择
+  - `internal/generator/` - 代码生成（handler、core、data、模板）
+  - `internal/updater/` - 代码更新（grpc、provider）
+  - `cmd/` - 命令层（handler、data）
+  - `docs/` - 文档
+
+### 修复
+
+- 🐛 **修复 gRPC 服务注册问题**：修复 `RegisterXXXServer` 调用未正确添加到 `NewGRPCServer` 函数体的问题
+- 🐛 **修复花括号匹配**：新增 `FindMatchingCurlyBrace` 函数正确处理函数体的花括号匹配
+
 ## [1.2.0] - 2026-01-28
 
 ### 新增功能

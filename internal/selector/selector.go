@@ -1,4 +1,4 @@
-package main
+package selector
 
 import (
 	"fmt"
@@ -15,26 +15,8 @@ type Selectable interface {
 	GetDescription() string
 }
 
-// 实现 Selectable 接口的服务信息
-func (s ServiceInfo) GetDisplayName() string {
-	return s.FileName
-}
-
-func (s ServiceInfo) GetDescription() string {
-	return fmt.Sprintf("Handler: %s, %d 个方法", s.HandlerName, len(s.Methods))
-}
-
-// 实现 Selectable 接口的实体信息
-func (e EntityInfo) GetDisplayName() string {
-	return e.FileName + ".go"
-}
-
-func (e EntityInfo) GetDescription() string {
-	return fmt.Sprintf("Entity: %s", e.EntityName)
-}
-
-// selectItems 使用上下键交互式选择要生成的项
-func selectItems[T Selectable](items []T) []T {
+// SelectItems 使用上下键交互式选择要生成的项
+func SelectItems[T Selectable](items []T) []T {
 	if len(items) == 0 {
 		return []T{}
 	}
@@ -155,9 +137,4 @@ func renderMenu[T Selectable](items []T, current int, isUpdate bool) {
 
 	// 立即刷新显示
 	os.Stdout.Sync()
-}
-
-// 为了兼容旧代码，保留 selectServices
-func selectServices(services []ServiceInfo) []ServiceInfo {
-	return selectItems(services)
 }
