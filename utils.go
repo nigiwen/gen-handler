@@ -28,11 +28,21 @@ func toLowerCamel(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
 
-// parseInt 解析整数（支持简单格式）
-func parseInt(s string) int {
-	var num int
-	fmt.Sscanf(s, "%d", &num)
-	return num
+// fileExists 检查文件是否存在
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// toUpperCamel 将下划线命名转换为大驼峰命名
+func toUpperCamel(s string) string {
+	parts := strings.Split(s, "_")
+	for i, part := range parts {
+		if len(part) > 0 {
+			parts[i] = strings.ToUpper(part[:1]) + part[1:]
+		}
+	}
+	return strings.Join(parts, "")
 }
 
 // readModuleFromGoMod 从当前目录向上查找 go.mod 文件并读取 module 路径
