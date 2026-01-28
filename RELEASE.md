@@ -1,67 +1,42 @@
-# Release v1.1.0
+# Release v1.2.0
 
 ## 🎉 新功能
 
-### 自动配置功能
+### 数据同步功能 (Data Sync)
 
-工具现在支持自动配置，大大简化了使用：
+工具现在支持 Data 层的自动同步，进一步提升开发效率：
 
-- ✨ **自动读取 go.mod**：自动从项目根目录的 `go.mod` 文件读取 module 路径
-- ✨ **自动生成 proto-dir**：根据 module 路径自动生成 proto 目录路径
-- ✨ **自动生成 wire-dir**：根据 module 路径自动生成 wire 目录路径
+- ✨ **自动扫描实体**：自动扫描 `internal/model/entity` 目录。
+- ✨ **自动生成 dbset**：生成包含 `BeforeCreate` (雪花 ID) 的类型别名文件。
+- ✨ **自动生成 repo**：生成标准的存储库结构和构造函数。
+- ✨ **自动注册**：自动将新生成的 Repo 注册到 `data.go` 的 `ProviderSet`。
+- ✨ **自动 wire**：注册完成后自动运行 `wire` 更新依赖注入。
 
 ### 使用示例
 
-现在使用工具更加简单：
-
 ```bash
-# 在项目根目录运行（自动读取 go.mod 并生成相关路径）
-gen-handler \
-  -output-dir ./api/grpc \
-  -core-dir ./core
+# 运行工具，选择 "Data Sync (Entity -> Repo)"
+gen-handler
 ```
-
-工具会自动：
-- 从 `go.mod` 读取 module（如：`bsi/axis/devopsx`）
-- 生成 `proto-dir`（如：`./internal/proto/axis/devopsx`）
-- 生成 `wire-dir`（如：`./cmd/devopsx`）
 
 ## 📦 安装方式
 
 ### 方式一：从源码安装（推荐）
 
 ```bash
-go install github.com/nigiwen/gen-handler@v1.1.0
+go install github.com/nigiwen/gen-handler@v1.2.0
 ```
 
 ### 方式二：使用预编译二进制
 
 下载对应平台的二进制文件：
 
-- **Linux amd64**: [gen-handler_1.1.0_linux_amd64.tar.gz](gen-handler_1.1.0_linux_amd64.tar.gz)
-- **Linux arm64**: [gen-handler_1.1.0_linux_arm64.tar.gz](gen-handler_1.1.0_linux_arm64.tar.gz)
-- **macOS amd64**: [gen-handler_1.1.0_darwin_amd64.tar.gz](gen-handler_1.1.0_darwin_amd64.tar.gz)
-- **macOS arm64**: [gen-handler_1.1.0_darwin_arm64.tar.gz](gen-handler_1.1.0_darwin_arm64.tar.gz)
-- **Windows amd64**: [gen-handler_1.1.0_windows_amd64.zip](gen-handler_1.1.0_windows_amd64.zip)
-
-**Linux/macOS 解压使用**：
-```bash
-tar -xzf gen-handler_1.1.0_linux_amd64.tar.gz
-./gen-handler -help
-```
-
-**Windows 解压使用**：
-```powershell
-# 解压 zip 文件
-# 运行 gen-handler.exe
-```
+- **Linux amd64**: [gen-handler_1.2.0_linux_amd64.tar.gz](gen-handler_1.2.0_linux_amd64.tar.gz)
+- **Linux arm64**: [gen-handler_1.2.0_linux_arm64.tar.gz](gen-handler_1.2.0_linux_arm64.tar.gz)
+- **macOS amd64**: [gen-handler_1.2.0_darwin_amd64.tar.gz](gen-handler_1.2.0_darwin_amd64.tar.gz)
+- **macOS arm64**: [gen-handler_1.2.0_darwin_arm64.tar.gz](gen-handler_1.2.0_darwin_arm64.tar.gz)
+- **Windows amd64**: [gen-handler_1.2.0_windows_amd64.zip](gen-handler_1.2.0_windows_amd64.zip)
 
 ## 📝 完整变更日志
 
 详见 [CHANGELOG.md](CHANGELOG.md)
-
-## 🔗 相关链接
-
-- [GitHub 仓库](https://github.com/nigiwen/gen-handler)
-- [使用文档](README.md)
-- [测试指南](TEST.md)

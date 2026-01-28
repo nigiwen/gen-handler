@@ -5,6 +5,18 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.2.0] - 2026-01-28
+
+### 新增功能
+
+- ✨ **数据同步功能 (Data Sync)**：支持自动扫描 `internal/model/entity` 目录下的实体，并生成对应的 `dbset` 类型别名和 `repo` 存储库代码。
+- ✨ **自动注册 ProviderSet**：生成的 `repo` 会自动注册到 `data/data.go` 的 `ProviderSet` 中，并自动触发 `wire` 命令重新生成依赖注入代码。
+- ✨ **交互式同步选择**：在执行数据同步时，支持交互式选择需要同步的实体。
+
+### 改进
+
+- 🚀 增强了主程序的子命令支持，现在可以通过交互式菜单选择执行“服务生成”或“数据同步”。
+
 ## [1.1.0] - 2026-01-23
 
 ### 新增功能
