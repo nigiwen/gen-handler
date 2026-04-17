@@ -5,6 +5,14 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 变更
+
+- ♻️ **调整 Data 同步来源**：`data` 命令现在只扫描 `internal/model/entity/*.gen.go` 作为候选实体来源。
+- ✨ **补手写 entity 占位文件**：选择实体后，如果 `internal/model/entity/<name>.go` 不存在，会自动生成仅包含 `package entity` 的占位文件。
+- 🗑️ **停止生成 dbset 文件**：不再生成 `data/dbset/*.go`，repo、`ProviderSet` 和 `wire` 逻辑保持不变。
+
 ## [1.3.0] - 2026-01-28
 
 ### 重构

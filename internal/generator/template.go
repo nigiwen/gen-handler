@@ -3,7 +3,7 @@ package generator
 import (
 	"bytes"
 	"text/template"
-	
+
 	"github.com/nigiwen/gen-handler/internal/util"
 )
 
@@ -30,33 +30,44 @@ func ExecuteTemplate(tmplStr string, data interface{}) (string, error) {
 	return buf.String(), nil
 }
 
+const handlerMethodsTemplate = `{{range .Methods}}
+{{if .Comment}}// {{.Comment}}{{else}}// {{.Name}}{{end}}
+// @name {{$.ProtoPackage}}.{{$.FieldName | trimSrv}}.{{.Name}}
+// @desc {{if .Comment}}{{.Comment}}{{else}}{{.Name}}{{end}}
+func ({{$.FieldName | firstChar}} *{{$.HandlerName}}) {{.Name}}(ctx context.Context, in *{{.RequestPkg}}.{{.RequestType}}) (*{{.ResponsePkg}}.{{.ResponseType}}, error) {
+	return {{$.FieldName | firstChar}}.{{$.FieldName}}.{{.Name}}(ctx, in)
+}
+{{end}}
+`
+
 // HandlerTemplate handler 模板
 const HandlerTemplate = `package grpc
 
 import (
-	"context"
-
-	"{{.ModulePath}}/core"
-	"{{.ModulePath}}/internal/proto/axis/devopsx"
-	"{{.ModulePath}}/internal/proto/basic"
+{{range .Imports}}    "{{.}}"
+{{end}}
 )
 
 type {{.HandlerName}} struct {
-	devopsx.Unimplemented{{.ServerName}}
+	{{.ProtoPackage}}.Unimplemented{{.ServerName}}
 	{{.FieldName}} *core.{{.ServiceName}}
 }
 
 func New{{.HandlerName}}({{.FieldName}} *core.{{.ServiceName}}) *{{.HandlerName}} {
-	return &{{.HandlerName}}{
-		{{.FieldName}}: {{.FieldName}},
-	}
+    return &{{.HandlerName}}{
+        {{.FieldName}}: {{.FieldName}},
+    }
 }
-{{range .Methods}}
+` + handlerMethodsTemplate
+
+// HandlerMethodsTemplate handler 方法模板
+const HandlerMethodsTemplate = handlerMethodsTemplate
+
+const coreServiceMethodsTemplate = `{{range .Methods}}
 {{if .Comment}}// {{.Comment}}{{else}}// {{.Name}}{{end}}
-// @name devopsx.{{$.FieldName | trimSrv}}.{{.Name}}
-// @desc {{if .Comment}}{{.Comment}}{{else}}{{.Name}}{{end}}
-func ({{$.FieldName | firstChar}} *{{$.HandlerName}}) {{.Name}}(ctx context.Context, in *{{.RequestPkg}}.{{.RequestType}}) (*{{.ResponsePkg}}.{{.ResponseType}}, error) {
-	return {{$.FieldName | firstChar}}.{{$.FieldName}}.{{.Name}}(ctx, in)
+func ({{$.FieldName | firstChar}} *{{$.ServiceName}}) {{.Name}}(ctx context.Context, in *{{.RequestPkg}}.{{.RequestType}}) (*{{.ResponsePkg}}.{{.ResponseType}}, error) {
+    {{$.FieldName | firstChar}}.log.Debug("not implement")
+    {{if eq .ResponseType "Empty"}}return &{{.ResponsePkg}}.Empty{}, nil{{else}}return nil, nil{{end}}
 }
 {{end}}
 `
@@ -70,15 +81,16 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 
 	"{{.ModulePath}}/internal/micro/client"
-	"{{.ModulePath}}/internal/proto/axis/devopsx"
-	"{{.ModulePath}}/internal/proto/basic"
+	"{{.ProtoImportPath}}"
+{{range .ProtoImports}}    "{{.}}"
+{{end}}
 	mgorm "bsi/kratos/micro/gorm"
 )
 
 type {{.ServiceName}} struct {
 	srvClient        *client.Client
 	log              *log.Helper
-	bs               *devopsx.Bootstrap
+	bs               *{{.ProtoPackage}}.Bootstrap
 	transactionScope *mgorm.TransactionScope
 }
 
@@ -86,53 +98,23 @@ type {{.ServiceName}} struct {
 func New{{.ServiceName}}(
 	srvClient *client.Client,
 	logger log.Logger,
-	bs *devopsx.Bootstrap,
+	bs *{{.ProtoPackage}}.Bootstrap,
 	transactionScope *mgorm.TransactionScope,
 ) *{{.ServiceName}} {
 	return &{{.ServiceName}}{
 		srvClient:        srvClient,
 		log:              log.NewHelper(log.With(logger, "module", "{{.FieldName | trimSrv}}")),
 		bs:               bs,
-		transactionScope: transactionScope,
-	}
+        transactionScope: transactionScope,
+    }
 }
-{{range .Methods}}
-{{if .Comment}}// {{.Comment}}{{else}}// {{.Name}}{{end}}
-func ({{$.FieldName | firstChar}} *{{$.ServiceName}}) {{.Name}}(ctx context.Context, in *{{.RequestPkg}}.{{.RequestType}}) (*{{.ResponsePkg}}.{{.ResponseType}}, error) {
-	{{$.FieldName | firstChar}}.log.Debug("not implement")
-	{{if eq .ResponseType "Empty"}}return &{{.ResponsePkg}}.Empty{}, nil{{else}}return nil, nil{{end}}
-}
-{{end}}
-`
+` + coreServiceMethodsTemplate
 
-// DbsetTemplate dbset 模板
-const DbsetTemplate = `package dbset
+// CoreServiceMethodsTemplate core service 方法模板
+const CoreServiceMethodsTemplate = coreServiceMethodsTemplate
 
-import (
-	jujuerrors "github.com/juju/errors"
-	"gorm.io/gorm"
-
-	"{{.ModulePath}}/internal/model/entity"
-	"bsi/kratos/micro/algo/snow"
-)
-
-type {{.EntityName}} struct {
-	entity.{{.EntityName}}
-}
-
-func (t *{{.EntityName}}) BeforeCreate(tx *gorm.DB) error {
-	if t.ID > 0 {
-		return nil
-	}
-
-	id, err := snow.ID()
-	if err != nil {
-		return jujuerrors.Trace(err)
-	}
-	t.ID = id
-
-	return nil
-}
+// EntityTemplate entity 占位模板
+const EntityTemplate = `package entity
 `
 
 // RepoTemplate repo 模板

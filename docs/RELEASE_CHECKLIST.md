@@ -25,6 +25,18 @@
 
 **注意**：Windows 文件是 tar.gz 格式（因为系统没有 zip 命令）。如果需要 zip 格式，可以在有 zip 命令的系统上重新打包，或使用 Windows 系统运行 `build.bat`。
 
+## ℹ️ 当前主干行为说明
+
+当前主干上的 `data` 命令行为已经调整为：
+
+- 扫描 `internal/model/entity/*.gen.go`
+- 按需生成 `internal/model/entity/<name>.go`
+- 生成 `data/<name>.go`
+- 更新 `data/data.go` 的 `ProviderSet`
+- 运行 `wire`
+
+当前主干已不再生成 `data/dbset/*.go`。下方 `v1.2.0` 发布说明仍保留当时版本的历史描述。
+
 ## 🚀 发布步骤
 
 ### 1. 推送代码和标签到 GitHub

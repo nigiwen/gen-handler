@@ -6,7 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"strings"
-	
+
 	"github.com/nigiwen/gen-handler/internal/types"
 	"github.com/nigiwen/gen-handler/internal/util"
 )
@@ -144,8 +144,9 @@ func addToNewGRPCServerParams(content string, service types.ServiceInfo) string 
 // addToNewGRPCServerBody 在 NewGRPCServer 函数体中添加 RegisterXXXServer
 func addToNewGRPCServerBody(content string, service types.ServiceInfo) string {
 	handlerVarName := util.ToLowerCamel(service.HandlerName)
+	protoPackage := grpcProtoPackage(service)
 	// ServerName 已经包含了 "Server" 后缀，所以直接用 Register%s
-	registerCall := fmt.Sprintf("\tdevopsx.Register%s(srv, %s)", service.ServerName, handlerVarName)
+	registerCall := fmt.Sprintf("\t%s.Register%s(srv, %s)", protoPackage, service.ServerName, handlerVarName)
 
 	// 查找 NewGRPCServer 函数体
 	funcStart := strings.Index(content, "func NewGRPCServer(")
@@ -168,7 +169,7 @@ func addToNewGRPCServerBody(content string, service types.ServiceInfo) string {
 
 	// 检查是否已经存在 Register 调用（只检查 RegisterXXXServer，不检查参数）
 	bodyContent := content[bodyStart:bodyEnd]
-	registerPattern := "devopsx.Register" + service.ServerName + "("
+	registerPattern := protoPackage + ".Register" + service.ServerName + "("
 	if strings.Contains(bodyContent, registerPattern) {
 		return content // 已经存在
 	}
@@ -190,4 +191,18 @@ func addToNewGRPCServerBody(content string, service types.ServiceInfo) string {
 	content = content[:insertPos] + registerCall + "\n" + content[insertPos:]
 
 	return content
+}
+
+func grpcProtoPackage(service types.ServiceInfo) string {
+	if service.ProtoPackage != "" {
+		return service.ProtoPackage
+	}
+	for _, method := range service.Methods {
+		for _, pkg := range []string{method.RequestPkg, method.ResponsePkg} {
+			if pkg != "" && pkg != "basic" && pkg != "zebra" {
+				return pkg
+			}
+		}
+	}
+	return "devopsx"
 }

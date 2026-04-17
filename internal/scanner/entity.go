@@ -3,7 +3,7 @@ package scanner
 import (
 	"os"
 	"strings"
-	
+
 	"github.com/nigiwen/gen-handler/internal/types"
 	"github.com/nigiwen/gen-handler/internal/util"
 )
@@ -17,13 +17,12 @@ func ScanEntities(dir string) ([]types.EntityInfo, error) {
 
 	var entities []types.EntityInfo
 	for _, file := range files {
-		if file.IsDir() || !strings.HasSuffix(file.Name(), ".go") {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".gen.go") {
 			continue
 		}
 
-		// 排除一些通用的文件
-		fileName := strings.TrimSuffix(file.Name(), ".go")
-		if fileName == "entity" || strings.HasSuffix(fileName, "_test") {
+		fileName := strings.TrimSuffix(file.Name(), ".gen.go")
+		if fileName == "" {
 			continue
 		}
 

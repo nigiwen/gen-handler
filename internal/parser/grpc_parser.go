@@ -5,7 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"strings"
-	
+
 	"github.com/nigiwen/gen-handler/internal/types"
 	"github.com/nigiwen/gen-handler/internal/util"
 )
@@ -55,6 +55,7 @@ func ParseGrpcFile(filePath string) ([]types.ServiceInfo, error) {
 func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.FileSet, node *ast.File) *types.ServiceInfo {
 	// 去掉 Server 后缀，得到基础名称
 	baseName := strings.TrimSuffix(serverName, "Server")
+	protoPackage := node.Name.Name
 
 	// 转换为文件名（驼峰转下划线，全小写）
 	fileName := util.CamelToSnake(baseName) + ".go"
@@ -111,23 +112,23 @@ func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.Fi
 		// 第一个参数是 context.Context，第二个是请求类型
 		if ft.Params != nil && len(ft.Params.List) >= 2 {
 			if sel, ok := ft.Params.List[1].Type.(*ast.StarExpr); ok {
-				requestType, requestPkg = extractTypeInfo(sel.X, node)
+				requestType, requestPkg = extractTypeInfo(sel.X, protoPackage)
 			}
 		}
 
 		// 返回值：第一个是响应类型，第二个是 error
 		if ft.Results != nil && len(ft.Results.List) >= 1 {
 			if sel, ok := ft.Results.List[0].Type.(*ast.StarExpr); ok {
-				responseType, responsePkg = extractTypeInfo(sel.X, node)
+				responseType, responsePkg = extractTypeInfo(sel.X, protoPackage)
 			}
 		}
 
-		// 默认包名为 devopsx
+		// 默认包名使用当前 grpc 文件的 package
 		if requestPkg == "" {
-			requestPkg = "devopsx"
+			requestPkg = protoPackage
 		}
 		if responsePkg == "" {
-			responsePkg = "devopsx"
+			responsePkg = protoPackage
 		}
 
 		methods = append(methods, types.Method{
@@ -145,17 +146,18 @@ func extractServiceInfo(serverName string, it *ast.InterfaceType, fset *token.Fi
 	}
 
 	return &types.ServiceInfo{
-		ServerName:  serverName,
-		HandlerName: handlerName,
-		FileName:    fileName,
-		FieldName:   fieldName,
-		ServiceName: serviceName,
-		Methods:     methods,
+		ServerName:   serverName,
+		ProtoPackage: protoPackage,
+		HandlerName:  handlerName,
+		FileName:     fileName,
+		FieldName:    fieldName,
+		ServiceName:  serviceName,
+		Methods:      methods,
 	}
 }
 
 // extractTypeInfo 从 AST 节点提取类型信息（类型名和包名）
-func extractTypeInfo(expr ast.Expr, node *ast.File) (typeName, pkgName string) {
+func extractTypeInfo(expr ast.Expr, defaultPkg string) (typeName, pkgName string) {
 	switch x := expr.(type) {
 	case *ast.Ident:
 		// 简单标识符，检查是否是导入的类型
@@ -166,7 +168,7 @@ func extractTypeInfo(expr ast.Expr, node *ast.File) (typeName, pkgName string) {
 		} else if typeName == "OpenApiInfo" {
 			pkgName = "zebra"
 		} else {
-			pkgName = "devopsx"
+			pkgName = defaultPkg
 		}
 	case *ast.SelectorExpr:
 		// 选择器表达式，如 basic.String

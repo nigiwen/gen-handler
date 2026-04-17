@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# gen-handler 多平台编译脚本
-# 用于发布前编译不同平台的二进制文件
+# gen-handler multi-platform packaging script
 
-set -e
+set -euo pipefail
 
-# 版本号（从 git tag 获取，或手动指定）
-VERSION=${1:-$(git describe --tags --always --dirty 2>/dev/null || echo "dev")}
+VERSION="${1:-dev}"
 APP_NAME="gen-handler"
 BUILD_DIR="dist"
 
