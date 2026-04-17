@@ -1,120 +1,41 @@
-# 发布检查清单 v1.2.0
+# 发布检查清单 v1.4.0
 
-## ✅ 发布前检查
+## 发布前检查
 
-- [ ] 代码已提交到 git
-- [ ] 已创建版本标签 v1.2.0
-- [ ] 已编译所有平台的二进制文件
-- [ ] 已更新 CHANGELOG.md
-- [ ] 已创建 RELEASE.md 发布说明
+- [ ] 代码改动已确认完整
+- [ ] `docs/CHANGELOG.md` 已更新到 `1.4.0`
+- [ ] `docs/RELEASE.md` 已更新为 `v1.4.0` 发布说明
+- [ ] 已确认本次 Git 标签使用 `v1.4.0`
+- [ ] 已确认预编译产物已生成
 
-## 📦 打包文件清单
+## 预编译产物
 
-以下文件已生成在 `dist/` 目录：
+当前 `dist/` 目录中的发布归档为：
 
-### Linux
-- [ ] `gen-handler_v1.2.0_linux_amd64.tar.gz`
-- [ ] `gen-handler_v1.2.0_linux_arm64.tar.gz`
+- [ ] `gen-handler_1.4.0_linux_amd64.tar.gz`
+- [ ] `gen-handler_1.4.0_linux_arm64.tar.gz`
+- [ ] `gen-handler_1.4.0_darwin_amd64.tar.gz`
+- [ ] `gen-handler_1.4.0_darwin_arm64.tar.gz`
+- [ ] `gen-handler_1.4.0_windows_amd64.tar.gz`
 
-### macOS
-- [ ] `gen-handler_v1.2.0_darwin_amd64.tar.gz`
-- [ ] `gen-handler_v1.2.0_darwin_arm64.tar.gz`
+## 版本说明
 
-### Windows
-- [ ] `gen-handler_v1.2.0_windows_amd64.tar.gz`
+- Git 标签：`v1.4.0`
+- 当前已打包归档名：`1.4.0`
+- 当前已打包二进制 `-version` 输出：`1.4.0`
 
-**注意**：Windows 文件是 tar.gz 格式（因为系统没有 zip 命令）。如果需要 zip 格式，可以在有 zip 命令的系统上重新打包，或使用 Windows 系统运行 `build.bat`。
+如果你希望 Git 标签、归档名和程序 `-version` 全部都带 `v` 前缀，需要重新按 `v1.4.0` 重新打包；当前这批产物保持 `1.4.0` 更稳妥。
 
-## ℹ️ 当前主干行为说明
+## GitHub Release 步骤
 
-当前主干上的 `data` 命令行为已经调整为：
+1. 创建或选择标签：`v1.4.0`
+2. 打开 Release 页面：`https://github.com/nigiwen/gen-handler/releases/new`
+3. Release 标题建议：`v1.4.0: handler 补全与统一 TUI`
+4. Release 正文：直接粘贴 `docs/RELEASE.md`
+5. 上传 `dist/` 下的 5 个归档文件
 
-- 扫描 `internal/model/entity/*.gen.go`
-- 按需生成 `internal/model/entity/<name>.go`
-- 生成 `data/<name>.go`
-- 更新 `data/data.go` 的 `ProviderSet`
-- 运行 `wire`
+## 发布后验证
 
-当前主干已不再生成 `data/dbset/*.go`。下方 `v1.2.0` 发布说明仍保留当时版本的历史描述。
-
-## 🚀 发布步骤
-
-### 1. 推送代码和标签到 GitHub
-
-```bash
-cd /workspace/bsi/axis/tools/gen-handler
-
-# 推送代码
-git push origin main
-
-# 推送标签
-git push origin v1.2.0
-```
-
-### 2. 在 GitHub 创建 Release
-
-1. 访问：https://github.com/nigiwen/gen-handler/releases/new
-2. 选择标签：`v1.2.0`
-3. 标题：`v1.2.0: 数据同步功能`
-4. 描述：复制 `RELEASE.md` 的内容
-5. 上传文件：上传 `dist/` 目录下的所有 `.tar.gz` 文件
-
-### 3. 发布说明模板
-
-```markdown
-# Release v1.2.0
-
-## 🎉 新功能
-
-### 数据同步功能 (Data Sync)
-
-工具现在支持 Data 层的自动同步，进一步提升开发效率：
-
-- ✨ **自动扫描实体**：自动扫描 `internal/model/entity` 目录。
-- ✨ **自动生成 dbset**：生成包含 `BeforeCreate` (雪花 ID) 的类型别名文件。
-- ✨ **自动生成 repo**：生成标准的存储库结构和构造函数。
-- ✨ **自动注册**：自动将新生成的 Repo 注册到 `data.go` 的 `ProviderSet`。
-- ✨ **自动 wire**：注册完成后自动运行 `wire` 更新依赖注入。
-
-### 使用示例
-
-```bash
-# 运行工具，选择 "Data Sync (Entity -> Repo)"
-gen-handler
-```
-
-## 📦 安装方式
-
-### 方式一：从源码安装（推荐）
-
-```bash
-go install github.com/nigiwen/gen-handler@v1.2.0
-```
-
-### 方式二：使用预编译二进制
-
-下载对应平台的二进制文件并解压使用。
-
-## 📝 完整变更日志
-
-详见 [CHANGELOG.md](CHANGELOG.md)
-```
-
-## ✅ 发布后验证
-
-发布成功后，验证安装：
-
-```bash
-# 测试安装
-go install github.com/nigiwen/gen-handler@v1.2.0
-
-# 验证版本
-gen-handler -help
-```
-
-## 📋 文件位置
-
-- 打包文件：`dist/` 目录
-- 发布说明：`RELEASE.md`
-- 变更日志：`CHANGELOG.md`
-- 编译脚本：`build.sh` (Linux/macOS) 和 `build.bat` (Windows)
+- [ ] `go install github.com/nigiwen/gen-handler@v1.4.0` 可正常安装
+- [ ] 二进制 `-version` 输出符合预期
+- [ ] Release 页面中的归档文件可正常下载

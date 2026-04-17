@@ -9,9 +9,31 @@
 
 ### 变更
 
-- ♻️ **调整 Data 同步来源**：`data` 命令现在只扫描 `internal/model/entity/*.gen.go` 作为候选实体来源。
+- 暂无
+
+## [1.4.0] - 2026-04-17
+
+### 新增功能
+
+- ✨ **统一终端交互**：`handler` 与 `data` 命令统一切换到 Bubble Tea TUI，支持多选、搜索、执行进度和结果汇总。
+- ✨ **版本输出**：新增 `-version` 参数，可直接输出构建注入的版本号。
+
+### 改进
+
+- ✨ **Handler 默认展示全部服务**：`handler` 命令不再按“缺失文件”预过滤，默认列出全部解析出的 gRPC 服务供用户选择。
+- ✨ **按需补全 Handler/Core 文件**：目标文件不存在时创建完整文件；文件已存在时只补缺失方法，保留已有实现。
+- 🔄 **按创建结果更新 ProviderSet / wire**：仅在本次新建了 `api/grpc/<service>.go` 时更新 `api/grpc/grpc.go`，仅在本次新建了 `core/<service>.go` 时更新 `core/core.go`，且只有创建了任意文件时才执行 `wire`。
+- 🧠 **去掉主 proto 硬编码**：主 proto 包名和 import 路径改为根据 `proto-dir` 与 grpc 文件 package 自动推导，不再写死为 `devopsx`。
+- 📦 **调整 Data 同步来源**：`data` 命令现在只扫描 `internal/model/entity/*.gen.go` 作为候选实体来源。
 - ✨ **补手写 entity 占位文件**：选择实体后，如果 `internal/model/entity/<name>.go` 不存在，会自动生成仅包含 `package entity` 的占位文件。
 - 🗑️ **停止生成 dbset 文件**：不再生成 `data/dbset/*.go`，repo、`ProviderSet` 和 `wire` 逻辑保持不变。
+
+### 修复
+
+- 🛡️ **签名漂移保护**：如果已存在同名方法但签名与当前 proto 不一致，工具会直接报错并保持文件不变。
+- 📤 **命令失败状态更准确**：`handler` 命令现在会把关键错误向上传播，便于 CLI 返回非零退出码。
+- 📜 **长列表滚动体验修复**：选择列表在条目较多时会跟随光标自动滚动。
+- 🎨 **当前项高亮增强**：当前光标所在项的标题和说明文字使用更明显的高亮颜色显示。
 
 ## [1.3.0] - 2026-01-28
 
